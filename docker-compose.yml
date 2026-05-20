@@ -1,0 +1,78 @@
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.18.0
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+
+  spark-master:
+    image: apache/spark:3.5.3
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master", "--host", "0.0.0.0"]
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+
+  spark-worker:
+    image: apache/spark:3.5.3
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+    depends_on:
+      - spark-master
+
+  pipeline-demo:
+    build: .
+    depends_on:
+      - mlflow
+      - spark-master
+      - spark-worker
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_EXPERIMENT_NAME=fraud-deep-learning-demo
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+
+  api:
+    build: .
+    command: uvicorn apps.inference.api:app --host 0.0.0.0 --port 8000
+    depends_on:
+      pipeline-demo:
+        condition: service_completed_successfully
+    environment:
+      - MODEL_PATH=/app/models/fraud_net.pt
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  mlflow-data:
+  grafana-data:
