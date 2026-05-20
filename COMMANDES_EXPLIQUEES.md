@@ -1,13 +1,13 @@
 # Commandes expliquées du projet
 
-Ce fichier regroupe les commandes importantes du premier projet `cr-e-projet-end-to-end`, avec une explication simple pour chaque commande.
+Ce fichier regroupe les commandes importantes du premier projet `bigdata-ml-platform`, avec une explication simple pour chaque commande.
 
 ## 1. Aller dans le dossier du projet
 
 ### Windows PowerShell
 
 ```powershell
-cd "C:\Users\Abdessamad Benammou\Documents\Codex\2026-05-19\cr-e-projet-end-to-end"
+cd "C:\Users\Abdessamad Benammou\Documents\Codex\2026-05-19\bigdata-ml-platform"
 ```
 
 Cette commande place le terminal dans le dossier du projet.
@@ -15,7 +15,7 @@ Cette commande place le terminal dans le dossier du projet.
 ### Linux / macOS
 
 ```bash
-cd cr-e-projet-end-to-end
+cd bigdata-ml-platform
 ```
 
 Cette commande fait la même chose sous Linux ou macOS.
